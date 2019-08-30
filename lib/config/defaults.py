@@ -217,6 +217,11 @@ _C.MODEL.RESNETS.STAGE_WITH_DCN = (False, False, False, False)
 _C.MODEL.RESNETS.WITH_MODULATED_DCN = False
 _C.MODEL.RESNETS.DEFORMABLE_GROUPS = 1
 
+# ---------------------------------------------------------------------------- #
+# VGGNet Options
+# ---------------------------------------------------------------------------- #
+_C.MODEL.VGGNET = CN()
+_C.MODEL.VGGNET.BACKBONE_OUT_CHANNELS = 512
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet Options (Follow the Detectron version)

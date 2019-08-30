@@ -7,6 +7,15 @@ from .. import registry
 from lib.scene_parser.rcnn.modeling.make_layers import conv_with_kaiming_uniform
 from . import fpn as fpn_module
 from . import resnet
+from . import vggnet
+
+
+@registry.BACKBONES.register("VGG-16")
+def build_vggnet_backbone(cfg):
+    body = vggnet.VGGNet(cfg)
+    model = nn.Sequential(OrderedDict([("body", body)]))
+    model.out_channels = cfg.MODEL.VGGNET.BACKBONE_OUT_CHANNELS
+    return model
 
 
 @registry.BACKBONES.register("R-50-C4")

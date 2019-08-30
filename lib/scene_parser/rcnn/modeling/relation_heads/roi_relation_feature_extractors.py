@@ -4,10 +4,37 @@ from torch import nn
 from torch.nn import functional as F
 
 from lib.scene_parser.rcnn.modeling import registry
-from lib.scene_parser.rcnn.modeling.backbone import resnet
+from lib.scene_parser.rcnn.modeling.backbone import resnet, vggnet
 from lib.scene_parser.rcnn.modeling.poolers import Pooler
 from lib.scene_parser.rcnn.modeling.make_layers import group_norm
 from lib.scene_parser.rcnn.modeling.make_layers import make_fc
+
+
+@registry.ROI_RELATION_FEATURE_EXTRACTORS.register("VGGNetROIFeatureExtractor")
+class VGGNetROIFeatureExtractor(nn.Module):
+    def __init__(self, config, in_channels):
+        super(VGGNetROIFeatureExtractor, self).__init__()
+
+        resolution = config.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
+        scales = config.MODEL.ROI_BOX_HEAD.POOLER_SCALES
+        sampling_ratio = config.MODEL.ROI_BOX_HEAD.POOLER_SAMPLING_RATIO
+        pooler = Pooler(
+            output_size=(resolution, resolution),
+            scales=scales,
+            sampling_ratio=sampling_ratio,
+        )
+
+        head = vggnet.VGGNetHead(config)
+
+        self.pooler = pooler
+        self.head = head
+        self.out_channels = head.out_channels
+
+    def forward(self, x, proposal_pairs):
+        proposals_union = [proposal_pair.copy_with_union() for proposal_pair in proposal_pairs]
+        x_union = self.pooler(x, proposals_union)
+        x = self.head(x_union.view(x_union.size(0), -1)).view(-1, self.out_channels, 1, 1)
+        return x
 
 
 @registry.ROI_RELATION_FEATURE_EXTRACTORS.register("ResNet50Conv5ROIFeatureExtractor")
